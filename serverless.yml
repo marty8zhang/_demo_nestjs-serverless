@@ -1,0 +1,37 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: marty8zhang
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: demo-nestjs-serverless
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: demo-nestjs-serverless
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-southeast-2
+
+functions:
+  main:
+    handler: dist/main.handler
+    events:
+      -   http:
+            method: ANY
+            path: /
+      -   http:
+            method: ANY
+            path: '{proxy+}'
+
+custom:
+  serverless-offline:
+    # A workaround for the "Cannot GET/POST/... null" issue when hitting the
+    # root url. With this flag turn on, there'll be no stage tag in the URLs
+    # when the service is started with `serverless offline`. E.g., with the
+    # flag off (default), `GET http://localhost:3000/dev/`; with it on,
+    # `GET http://localhost:3000/`.
+    # See:
+    #   - https://github.com/dougmoscrop/serverless-http/issues/86
+    #   - https://github.com/dherault/serverless-offline?tab=readme-ov-file#noprependstageinurl
+    noPrependStageInUrl: true
