@@ -17,12 +17,18 @@ functions:
   main:
     handler: dist/main.handler
     events:
-      -   http:
-            method: ANY
-            path: /
-      -   http:
-            method: ANY
-            path: '{proxy+}'
+      - http:
+          method: ANY
+          path: /
+      - http:
+          method: ANY
+          path: '{proxy+}'
+
+package:
+  # AWS Lambda 101: Reduce the upload package size by excluding library folders to prevent the error of
+  # "Unzipped size must be smaller than 262144000 bytes".
+  exclude:
+    - node_modules/**
 
 custom:
   serverless-offline:
