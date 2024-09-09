@@ -1,12 +1,17 @@
 import * as process from 'node:process';
 
+import { HttpService } from '@nestjs/axios';
 import { Controller, Get } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
 
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly httpService: HttpService,
+  ) {}
 
   @Get()
   getHello(): string {
@@ -22,5 +27,14 @@ export class AppController {
       password: process.env.DB_PASSWORD,
       databaseName: process.env.DB_DBNAME,
     };
+  }
+
+  @Get('egghdz')
+  async getEgghdz() {
+    const url = `http://${process.env.EGGHDZ_V1_ADDRESS}`;
+    console.log(`Hitting ${url}...`);
+    const response = await firstValueFrom(this.httpService.get(url));
+
+    return response.data;
   }
 }

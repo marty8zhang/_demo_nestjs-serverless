@@ -23,12 +23,20 @@ functions:
       - http:
           method: ANY
           path: '{proxy+}'
+    # Gives the Lambda function access to resources in the AWS VPC, which hosts a MongoDB server within an EC2.
+    vpc:
+      subnetIds:
+        - ${env:AWS_VPC_SUBNET_ID_PUBLIC_ONE}
+        - ${env:AWS_VPC_SUBNET_ID_PUBLIC_TWO}
+      securityGroupIds:
+        - ${env:AWS_SG_ID_MONGO_VPC}
     environment:
       DB_HOST: ${self:custom.db-credentials.host}
       DB_PORT: ${self:custom.db-credentials.port}
       DB_USERNAME: ${self:custom.db-credentials.username}
       DB_PASSWORD: ${self:custom.db-credentials.password}
       DB_DBNAME: ${self:custom.db-credentials.dbname}
+      EGGHDZ_V1_ADDRESS: ${env:AWS_EC2_IP_PRIVATE_EGGHDZ_V1}
 
 package:
   # AWS Lambda 101: Reduce the upload package size by excluding library folders to prevent the error of
@@ -54,7 +62,7 @@ resources:
     PublicNatGateway:
       Type: AWS::EC2::NatGateway
       Properties:
-        SubnetId: ${env:AWS_VPC_PUBLIC_SUBNET_ID}
+        SubnetId: ${env:AWS_VPC_SUBNET_ID_PUBLIC_TWO}
         AllocationId: !GetAtt PublicNatGatewayEIP.AllocationId
     PublicNatGatewayEIP:
       Type: AWS::EC2::EIP
@@ -72,7 +80,7 @@ resources:
       Type: AWS::EC2::SubnetRouteTableAssociation
       Properties:
         RouteTableId: !Ref RouteTableUsingPublicNatGateway
-        SubnetId: ${env:AWS_VPC_PRIVATE_SUBNET_ID}
+        SubnetId: ${env:AWS_VPC_SUBNET_ID_PRIVATE_ONE}
 
 custom:
   db-credentials: ${aws:ssm:/aws/reference/secretsmanager/${env:AWS_SSM_DATABASE_CREDENTIALS}}
