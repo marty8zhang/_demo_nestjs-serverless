@@ -36,6 +36,44 @@ package:
   exclude:
     - node_modules/**
 
+resources:
+  # Note: In a real-world scenario, infrastructure resources like below should be managed separately, e.g., in a
+  # separate `serverless.yml` or even a separate repository. They're only included here for the purposes of demoing and
+  # providing a quicker way to spin up the demo environment.
+  Resources:
+    # The following resources provide Internet access to a private subnet by doing these things (see
+    # `docs/public-nat-gateway.drawio` for more details):
+    #   - Create a public NAT gateway (`PublicNatGateway`) in an existing public subnet.
+    #   - `PublicNatGatewayEIP` allows the gateway to be allocated with a public IP address, hence make it public.
+    #   - Create a network route table (`RouteTableUsingPublicNatGateway`) in an existing VPC.
+    #   - Create a network route (`InternetAccessRoute`), which points to the public NAT gateway, within the route
+    #     table.
+    #   - `SubnetRouteTableAssociation` associates the route table with an existing private subnet which previously
+    #     doesn't have Internet access.
+    # Note: All subnets mentioned here belong to the same VPC.
+    PublicNatGateway:
+      Type: AWS::EC2::NatGateway
+      Properties:
+        SubnetId: ${env:AWS_VPC_PUBLIC_SUBNET_ID}
+        AllocationId: !GetAtt PublicNatGatewayEIP.AllocationId
+    PublicNatGatewayEIP:
+      Type: AWS::EC2::EIP
+    RouteTableUsingPublicNatGateway:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: ${env:AWS_VPC_ID}
+    InternetAccessRoute:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref RouteTableUsingPublicNatGateway
+        DestinationCidrBlock: 0.0.0.0/0
+        NatGatewayId: !Ref PublicNatGateway
+    SubnetRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref RouteTableUsingPublicNatGateway
+        SubnetId: ${env:AWS_VPC_PRIVATE_SUBNET_ID}
+
 custom:
   db-credentials: ${aws:ssm:/aws/reference/secretsmanager/${env:AWS_SSM_DATABASE_CREDENTIALS}}
   serverless-offline:
