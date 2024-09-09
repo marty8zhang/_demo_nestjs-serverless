@@ -23,6 +23,12 @@ functions:
       - http:
           method: ANY
           path: '{proxy+}'
+    environment:
+      DB_HOST: ${self:custom.db-credentials.host}
+      DB_PORT: ${self:custom.db-credentials.port}
+      DB_USERNAME: ${self:custom.db-credentials.username}
+      DB_PASSWORD: ${self:custom.db-credentials.password}
+      DB_DBNAME: ${self:custom.db-credentials.dbname}
 
 package:
   # AWS Lambda 101: Reduce the upload package size by excluding library folders to prevent the error of
@@ -31,6 +37,7 @@ package:
     - node_modules/**
 
 custom:
+  db-credentials: ${aws:ssm:/aws/reference/secretsmanager/${env:AWS_SSM_DATABASE_CREDENTIALS}}
   serverless-offline:
     # A workaround for the "Cannot GET/POST/... null" issue when hitting the
     # root url. With this flag turn on, there'll be no stage tag in the URLs
