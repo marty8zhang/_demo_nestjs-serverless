@@ -1,6 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
 import * as process from 'node:process';
+
+import { Controller, Get } from '@nestjs/common';
+
+import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
