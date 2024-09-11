@@ -13,13 +13,13 @@ export class AppController {
     private readonly httpService: HttpService,
   ) {}
 
-  @Get()
+  @Get('hello')
   getHello(): string {
     return this.appService.getHello();
   }
 
   @Get('database-credentials')
-  getSecrets(): object {
+  getDatabaseCredentials(): object {
     return {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
@@ -29,8 +29,8 @@ export class AppController {
     };
   }
 
-  @Get('egghdz')
-  async getEgghdz() {
+  @Get('vpc-private-resource')
+  async getVpcPrivateResource() {
     const url = `http://${process.env.EGGHDZ_V1_ADDRESS}`;
     console.log(`Hitting ${url}...`);
     const response = await firstValueFrom(this.httpService.get(url));
