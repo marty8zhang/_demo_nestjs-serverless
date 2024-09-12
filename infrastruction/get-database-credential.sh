@@ -17,11 +17,11 @@ function get-database-credential() {
     --profile profile-egghdz-demo \
     | jq --raw-output ".$1")
 
-  if [ $result = "null" ]
+  if [ "$result" = "null" ]
     then
-      printf "Error: No value found for \`$1\`."
+      printf "Error: No value found for \`%s\`." "$1"
       exit 1
   fi
 
-  echo $result
+  echo "$result"
 }

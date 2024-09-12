@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/get-database-credential.sh"
+# Use `realpath` in case this script is run via a symbolic link.
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/get-database-credential.sh"
 
 docker run \
   --publish 27017:27017 \

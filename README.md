@@ -19,6 +19,25 @@
 $ pnpm install
 ```
 
+The local development environment relies on a local MongoDB server. Docker
+Compose can be used to spin it up.
+**Note:** Before starting the local development environment, comment these lines
+out in `serverless.yml`, because we don't want to use the "live" database
+credentials from AWS Secrets Manager. Instead, database credentials will be
+loaded from `.env` locally.
+
+```yaml
+DB_HOST: ${self:custom.db-credentials.host}
+DB_PORT: ${self:custom.db-credentials.port}
+DB_USERNAME: ${self:custom.db-credentials.username}
+DB_PASSWORD: ${self:custom.db-credentials.password}
+DB_DBNAME: ${self:custom.db-credentials.dbname}
+```
+
+```bash
+$ docker compose up -d
+```
+
 ```bash
 # Local testing - start the Serverless Framework offline mode
 $ pnpm sls:start

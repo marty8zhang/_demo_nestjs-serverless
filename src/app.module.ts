@@ -16,7 +16,11 @@ import { EarthquakesModule } from './earthquakes/earthquakes.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri: `mongodb://${config.get<string>('MONGO_USERNAME')}:${config.get<string>('MONGO_PASSWORD')}@${config.get<string>('MONGO_HOST')}:${config.get<string>('MONGO_PORT')}/${config.get<string>('MONGO_DBNAME')}?authSource=admin`,
+        uri: `mongodb://${config.get<string>('DB_HOST')}:${config.get<string>('DB_PORT')}`,
+        authSource: 'admin',
+        user: config.get<string>('DB_USERNAME'),
+        pass: config.get<string>('DB_PASSWORD'),
+        dbName: config.get<string>('DB_DBNAME'),
       }),
     }),
     HttpModule,
