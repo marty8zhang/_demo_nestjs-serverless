@@ -28,7 +28,7 @@ functions:
           method: ANY
           path: '{proxy+}'
     # Gives the Lambda function access to resources in the AWS VPC, which hosts
-    # a MongoDB server within an EC2.
+    # a MongoDB server within a private EC2 instance.
     vpc:
       subnetIds:
         - ${env:AWS_VPC_SUBNET_ID_PUBLIC_ONE}
@@ -47,6 +47,7 @@ package:
   # AWS Lambda 101: Reduce the upload package size by excluding unnecessary
   # folders/files to prevent the error of
   # "Unzipped size must be smaller than 262144000 bytes".
+  # In this demo project, only files in `dist/` are needed.
   patterns:
     - '!./**'
     - 'dist/**'
@@ -95,7 +96,7 @@ resources:
         SubnetId: ${env:AWS_VPC_SUBNET_ID_PRIVATE_ONE}
 
 custom:
-  db-credentials: ${aws:ssm:/aws/reference/secretsmanager/${env:AWS_SSM_DATABASE_CREDENTIALS}}
+  db-credentials: ${aws:ssm:/aws/reference/secretsmanager/${env:AWS_SM_SECRET_ID_DATABASE}}
   serverless-offline:
     # A workaround for the "Cannot GET/POST/... null" issue when hitting the
     # root url. With this flag turn on, there'll be no stage tag in the URLs
