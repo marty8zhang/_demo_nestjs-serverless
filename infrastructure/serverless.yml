@@ -1,0 +1,81 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: marty8zhang
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: demo-nestjs-serverless
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: demo-nestjs-serverless-infrastructure
+
+provider:
+  name: aws
+  region: ap-southeast-2
+
+resources:
+  # Refer to: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
+  Resources:
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: admin_only
+              Priority: 1
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: true
+        AliasAttributes:
+          - email
+          - preferred_username
+        AutoVerifiedAttributes:
+          - email
+        # Deletion protection is good for production, but with it being active,
+        # manually disabling this feature will be needed before running
+        # `serverless remove`, which then defeats the purposes of quick demoing.
+        # DeletionProtection: ACTIVE
+        EnabledMfas:
+          # It doesn't seem there's an easy way to bypass relevant SMS
+          # configurations with `SMS_MFA` included here. This CloudFormation
+          # behaviour is different from when creating a user pool via the AWS
+          # console (UI), where the console allows a partial configuration by
+          # only assigning an IAM role to finish user pool creation.
+          # - SMS_MFA
+          - SOFTWARE_TOKEN_MFA
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+        MfaConfiguration: OPTIONAL
+        Schema:
+          - Name: updated_at
+            Required: true
+          - AttributeDataType: String
+            Mutable: true
+            Name: hobbies
+            Required: false
+            StringAttributeConstraints:
+              MaxLength: '2048'
+              MinLength: '1'
+        UserAttributeUpdateSettings:
+          AttributesRequireVerificationBeforeUpdate:
+            - email
+        UsernameConfiguration:
+          CaseSensitive: false
+        UserPoolName: demo-nestjs-serverless-${sls:stage}
+        UserPoolTags:
+          test: ''
+          demo: ''
+    CognitoUserPoolAppClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        AccessTokenValidity: 1
+        AuthSessionValidity: 3
+        ClientName: demo-nestjs-serverless
+        EnableTokenRevocation: true
+        ExplicitAuthFlows:
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+        GenerateSecret: false
+        IdTokenValidity: 1
+        PreventUserExistenceErrors: ENABLED
+        RefreshTokenValidity: 7
+        TokenValidityUnits:
+          AccessToken: hours
+          IdToken: hours
+          RefreshToken: days
+        UserPoolId: !Ref CognitoUserPool
