@@ -79,3 +79,18 @@ resources:
           IdToken: hours
           RefreshToken: days
         UserPoolId: !Ref CognitoUserPool
+    CognitoUserPoolDemosUser:
+      Type: AWS::Cognito::UserPoolUser
+      Properties:
+        DesiredDeliveryMediums: [ ]
+        UserAttributes:
+          - Name: custom:hobbies
+            Value: Coding,Reading
+          - Name: email
+            Value: demos@example.com
+          - Name: email_verified
+            Value: "true"
+          - Name: preferred_username
+            Value: demos
+        Username: demos
+        UserPoolId: !Ref CognitoUserPool
