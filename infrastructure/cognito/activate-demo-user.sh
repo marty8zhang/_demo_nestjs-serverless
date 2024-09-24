@@ -1,7 +1,8 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.env"
+# First two `dirname` are used to locate the (grand)parent folder.
+source "$(dirname "$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]}")")")")/.env"
 
 # By setting a permanent password, the user's status will also be updated to
 # `Confirmed`.

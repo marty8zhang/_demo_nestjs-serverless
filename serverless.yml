@@ -24,9 +24,17 @@ functions:
       - http:
           method: ANY
           path: /
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayCognitoAuthorizer
       - http:
           method: ANY
           path: '{proxy+}'
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayCognitoAuthorizer
     # Gives the Lambda function access to resources in the AWS VPC, which hosts
     # a MongoDB server within a private EC2 instance.
     vpc:
@@ -53,11 +61,113 @@ package:
     - 'dist/**'
 
 resources:
-  # Note: In a real-world scenario, infrastructure resources like below should
-  # be managed separately, e.g., in a separate `serverless.yml` or even a
+  # Refer to: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
+  # Note: In a real-world scenario, most infrastructure resources like below
+  # should be managed separately, e.g., in a separate `serverless.yml` or even a
   # separate repository. They're only included here for the purposes of demoing
   # and providing a quicker way to spin up the demo environment.
   Resources:
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: admin_only
+              Priority: 1
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: true
+        AliasAttributes:
+          - email
+          - preferred_username
+        AutoVerifiedAttributes:
+          - email
+        # Deletion protection is good for production, but with it being active,
+        # manually disabling this feature will be needed before running
+        # `serverless remove`, which then defeats the purposes of quick demoing.
+        # DeletionProtection: ACTIVE
+        EnabledMfas:
+          # It doesn't seem there's an easy way to bypass relevant SMS
+          # configurations with `SMS_MFA` included here. This CloudFormation
+          # behaviour is different from when creating a user pool via the AWS
+          # console (UI), where the console allows a partial configuration by
+          # only assigning an IAM role to finish user pool creation.
+          # - SMS_MFA
+          - SOFTWARE_TOKEN_MFA
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+        MfaConfiguration: OPTIONAL
+        Schema:
+          - Name: updated_at
+            Required: true
+          - AttributeDataType: String
+            Mutable: true
+            Name: hobbies
+            Required: false
+            StringAttributeConstraints:
+              MaxLength: '2048'
+              MinLength: '1'
+        UserAttributeUpdateSettings:
+          AttributesRequireVerificationBeforeUpdate:
+            - email
+        UsernameConfiguration:
+          CaseSensitive: false
+        UserPoolName: ${sls:stage}-demo-nestjs-serverless
+        UserPoolTags:
+          test: ''
+          demo: ''
+    CognitoUserPoolAppClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        AccessTokenValidity: 1
+        AuthSessionValidity: 3
+        ClientName: demo-nestjs-serverless
+        EnableTokenRevocation: true
+        ExplicitAuthFlows:
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+        GenerateSecret: false
+        IdTokenValidity: 1
+        PreventUserExistenceErrors: ENABLED
+        RefreshTokenValidity: 7
+        TokenValidityUnits:
+          AccessToken: hours
+          IdToken: hours
+          RefreshToken: days
+        UserPoolId: !Ref CognitoUserPool
+    CognitoUserPoolDemosUser:
+      Type: AWS::Cognito::UserPoolUser
+      Properties:
+        DesiredDeliveryMediums: [ ]
+        UserAttributes:
+          - Name: custom:hobbies
+            Value: Coding,Reading
+          - Name: email
+            Value: ${env:AWS_COGNITO_USER_POOL_EMAIL}
+          - Name: email_verified
+            Value: "true"
+          - Name: preferred_username
+            Value: ${env:AWS_COGNITO_USER_POOL_USERNAME}
+        Username: ${env:AWS_COGNITO_USER_POOL_USERNAME}
+        UserPoolId: !Ref CognitoUserPool
+    ApiGatewayCognitoAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        IdentitySource: method.request.header.Authorization
+        Name: CognitoAuthoriser
+        ProviderARNs:
+          - !Join
+            - ''
+            - - 'arn:aws:cognito-idp'
+              - ':'
+              - ${self:provider.region}
+              - ':'
+              - !Ref AWS::AccountId
+              - ':userpool/'
+              - !Ref CognitoUserPool
+        # `ApiGatewayRestApi` is Serverless Framework's default Rest API logical
+        # id.
+        RestApiId: !Ref ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
     # The following resources provide Internet access to a private subnet by
     # doing these things (see `docs/public-nat-gateway.drawio`):
     #   - Create a public NAT gateway (`PublicNatGateway`) in an existing public

@@ -1,6 +1,6 @@
 # TODOs
 
-- Update Cognito related information.
+- A simple frontend that works with backend API authentication/authorisation.
 
 # Infrastructure
 
@@ -16,16 +16,19 @@
     - `webpack` is used to transpile the source code into a single JavaScript
       file for deployment. [This drastically improves the cold start time of
       Lambda.](https://docs.nestjs.com/faq/serverless#benchmarks)
+    - The backend is made public accessible via API Gateway with a Cognito
+      authoriser. Cognito ID token (rather than access token) should be used for
+      authentication/authorisation in the current configuration.
 - A Dockerised MongoDB server, which provides the backend database, is manually
   run in a private EC2 instance.
     - Database credentials are stored
       in [Secrets Manager](https://aws.amazon.com/secrets-manager/).
-- A Public NAT gateway, also deployed by Serverless Framework, provides the
-  existing private EC2 instance with Internet access. See
-  `docs/public-nat-gateway.drawio` for details.
-  **Note:** The Internet access isn't for hosting the database server, but for
-  installing dependencies and retrieving AWS Secrets Manager secrets inside the
-  private EC2 instance, etc.
+    - A Public NAT gateway, also deployed by Serverless Framework, provides the
+      existing private EC2 instance with Internet access. See
+      `docs/public-nat-gateway.drawio` for details.
+      **Note:** The Internet access isn't for hosting the database server, but
+      for installing dependencies and retrieving AWS Secrets Manager secrets
+      inside the private EC2 instance, etc.
 
 # Preparation
 
@@ -37,6 +40,7 @@
 3. Copy `.env.example` as `.env` and fill in the missing values. Fill in `AWS_*`
    values according to the actual AWS resources; fill in `DB_*` values for local
    development (Serverless Offline mode) only.
+   **Note:** Some `AWS_*` values can only be obtained after deployment.
 4. Create a secret in AWS Secrets Manager with the key names and values of the
    MongoDB database credentials as shown below:
    ```json
@@ -61,6 +65,7 @@
       `infrastructure/mongo`, but some manual work is still required. E.g.,
       copying the scripts into the instance, making them executable, setting up
       the environment variable, etc.
+7. Run `infrastructure/cognito/activate-demo-user.sh`.
 
 ## Local Development Environment
 
