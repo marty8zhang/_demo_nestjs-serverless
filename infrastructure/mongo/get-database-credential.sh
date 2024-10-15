@@ -1,3 +1,5 @@
+source "$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]}")")")/.env"
+
 function get-database-credential() {
   if [ $# -eq 0 ]
     then

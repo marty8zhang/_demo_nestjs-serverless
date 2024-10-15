@@ -32,6 +32,8 @@
 
 # Preparation
 
+**Note:** If not specified, all commands are to be run locally.
+
 1. Install Node.js dependencies first:
    ```bash
    $ pnpm install
@@ -54,18 +56,20 @@
    ```
    **Note:** The `host` should be the private IP address of the private EC2
    instance.
-5. Deploy the project by running: `pnpm sls:deploy`. Check out
-   the [Deployment](#deployment) section below for more details.
-6. Use the same database credentials set in the previous step and set up a
+5. Run `aws configure sso` to create a profile if it hasn't been set up yet.
+6. Log in with AWS CLI, e.g., `aws sso login --profile your-profile`
+7. Deploy the project by running: `pnpm sls:deploy`.
+   Check out the [Deployment](#deployment) section below for more details.
+8. Use the same database credentials set in the previous step and set up a
    MongoDB server inside the private EC2 instance and expose the service within
    the VPC, e.g., with correct Security Group configurations and so on.
     - Security Group needs to be set up manually.
-    - Some shell scripts have already been written to help with running a
-      Dockerised MongoDB server in the instance. They can be found in
-      `infrastructure/mongo`, but some manual work is still required. E.g.,
-      copying the scripts into the instance, making them executable, setting up
-      the environment variable, etc.
-7. Run `infrastructure/cognito/activate-demo-user.sh`.
+    - Some shell scripts and `.env.example-for-ec2` have already been written to
+      help with running a Dockerised MongoDB server in the instance. They can be
+      found in `infrastructure`, but some manual work is still required.
+      E.g., copying the files into the instance, making scripts executable,
+      logging in with AWS CLI, setting up the environment variable, etc.
+9. Run `infrastructure/cognito/activate-demo-user.sh`.
 
 ## Local Development Environment
 
