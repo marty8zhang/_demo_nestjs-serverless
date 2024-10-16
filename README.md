@@ -1,7 +1,3 @@
-# TODOs
-
-- A simple frontend that works with backend API authentication/authorisation.
-
 # Infrastructure
 
 - This project integrates
@@ -29,6 +25,11 @@
       **Note:** The Internet access isn't for hosting the database server, but
       for installing dependencies and retrieving AWS Secrets Manager secrets
       inside the private EC2 instance, etc.
+- [Next.js](https://nextjs.org) as the frontend,
+  [NextAuth.js](https://next-auth.js.org)
+  and [AWS SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/cognito-identity-provider/command/InitiateAuthCommand/)
+  are used to demonstrate the authentication process.
+    - No remote deployment. The frontend runs in a local environment only.
 
 # Preparation
 
@@ -70,6 +71,16 @@
       E.g., copying the files into the instance, making scripts executable,
       logging in with AWS CLI, setting up the environment variable, etc.
 9. Run `infrastructure/cognito/activate-demo-user.sh`.
+10. Go to the `frontend` folder:
+    1. Run `pnpm install`.
+    2. Copy `.env.example` as `.env` and fill in the values.
+        - `dev/set-up-environment-variables.sh` can be run to
+          automatically fill in deployment related values in `.env` once
+          created.
+    3. Run `pnpm dev` and visit [the frontend](http://localhost:4000) from the
+       browser.
+    4. Log in with the username and password previously set in `.env` of the
+       backend.
 
 ## Local Development Environment
 
